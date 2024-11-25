@@ -1,0 +1,6 @@
+/* Use @import */
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+@import "./assets/primevue/tailwind.css";
+@import "./assets/primevue/base.css";

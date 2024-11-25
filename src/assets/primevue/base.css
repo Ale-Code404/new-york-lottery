@@ -1,0 +1,72 @@
+/* Primary and Surface Palettes */
+:root {
+  --p-primary-50: #e1eef5;
+  --p-primary-100: #b3d3e6;
+  --p-primary-200: #80b7d6;
+  --p-primary-300: #4e9ac6;
+  --p-primary-400: #2f7fad;
+  --p-primary-500: #1e6091;
+  /* Base color */
+  --p-primary-600: #184f74;
+  --p-primary-700: #133e5a;
+  --p-primary-800: #0e2e43;
+  --p-primary-900: #0a1f30;
+  --p-primary-950: #05111a;
+  --p-surface-0: #ffffff;
+  --p-surface-50: #f7f9fb;
+  --p-surface-100: #eef2f7;
+  --p-surface-200: #d9e2eb;
+  --p-surface-300: #c3d1dd;
+  --p-surface-400: #a2b5c7;
+  --p-surface-500: #7f96ab;
+  --p-surface-600: #647789;
+  --p-surface-700: #505e6d;
+  --p-surface-800: #3c4752;
+  --p-surface-900: #2a323b;
+  --p-surface-950: #16191d;
+  --p-content-border-radius: 6px;
+}
+
+/* Light */
+:root {
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-contrast-color: var(--p-surface-0);
+  --p-primary-hover-color: var(--p-primary-600);
+  --p-primary-active-color: var(--p-primary-700);
+  --p-content-border-color: var(--p-surface-200);
+  --p-content-hover-background: var(--p-surface-100);
+  --p-content-hover-color: var(--p-surface-800);
+  --p-highlight-background: var(--p-primary-50);
+  --p-highlight-color: var(--p-primary-700);
+  --p-highlight-focus-background: var(--p-primary-100);
+  --p-highlight-focus-color: var(--p-primary-800);
+  --p-text-color: var(--p-surface-700);
+  --p-text-hover-color: var(--p-surface-800);
+  --p-text-muted-color: var(--p-surface-500);
+  --p-text-hover-muted-color: var(--p-surface-600);
+}
+
+/* Dark Mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --p-primary-color: var(--p-primary-400);
+    --p-primary-contrast-color: var(--p-surface-900);
+    --p-primary-hover-color: var(--p-primary-300);
+    --p-primary-active-color: var(--p-primary-200);
+    --p-content-border-color: var(--p-surface-700);
+    --p-content-hover-background: var(--p-surface-800);
+    --p-content-hover-color: var(--p-surface-0);
+    --p-highlight-background: color-mix(in srgb,
+        var(--p-primary-400),
+        transparent 84%);
+    --p-highlight-color: rgba(255, 255, 255, 0.87);
+    --p-highlight-focus-background: color-mix(in srgb,
+        var(--p-primary-400),
+        transparent 76%);
+    --p-highlight-focus-color: rgba(255, 255, 255, 0.87);
+    --p-text-color: var(--p-surface-0);
+    --p-text-hover-color: var(--p-surface-0);
+    --p-text-muted-color: var(--p-surface-400);
+    --p-text-hover-muted-color: var(--p-surface-300);
+  }
+}
