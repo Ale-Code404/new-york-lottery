@@ -6,13 +6,21 @@ class Game {
   tries: GameTry[];
   cards: GameCard[];
 
+  possibleCards: GameCard[];
+  possibleCombinations: string[];
+
   constructor({ name, config }: { name: string; config: GameConfig }) {
     this.name = name;
     this.config = config;
-    this.result = new GameResult(config);
 
     this.tries = [];
     this.cards = [];
+
+    // Use a pre-generated list of possible cards
+    this.possibleCards = this.createPossibleCards();
+    this.possibleCombinations = this.createPossibleCombinations();
+
+    this.result = new GameResult(this.possibleCombinations);
   }
 
   play(option: GameTry): GameTryResult {
@@ -20,8 +28,7 @@ class Game {
       throw new GameAlreadyFinished();
     }
 
-    // Generates a new card
-    const card = this.createCard();
+    const card = this.getRandomCard();
     // Add card to the game
     this.cards.push(card);
 
@@ -32,8 +39,60 @@ class Game {
     return tryResult;
   }
 
-  createCard() {
-    return new GameCard(this.config);
+  // A game can only be played with a possible card combination
+  getRandomCard() {
+    return this.possibleCards[
+      Math.floor(Math.random() * this.possibleCards.length)
+    ];
+  }
+
+  createPossibleCards() {
+    return [
+      new GameCard(this.config, [
+        [1, 5],
+        [1, 5],
+        [1, 5],
+      ]),
+      new GameCard(this.config, [
+        [5, 1],
+        [5, 1],
+        [5, 1],
+      ]),
+      new GameCard(this.config, [
+        [1, 5],
+        [1, 5],
+        [5, 1],
+      ]),
+      new GameCard(this.config, [
+        [1, 5],
+        [5, 1],
+        [1, 5],
+      ]),
+      new GameCard(this.config, [
+        [1, 5],
+        [5, 1],
+        [5, 1],
+      ]),
+      new GameCard(this.config, [
+        [5, 1],
+        [1, 5],
+        [5, 1],
+      ]),
+      new GameCard(this.config, [
+        [5, 1],
+        [5, 1],
+        [1, 5],
+      ]),
+      new GameCard(this.config, [
+        [5, 1],
+        [1, 5],
+        [1, 5],
+      ]),
+    ];
+  }
+
+  createPossibleCombinations() {
+    return ["111", "115", "151", "155", "511", "515", "551", "555"];
   }
 }
 
@@ -41,12 +100,14 @@ class GameCard {
   config: GameConfig;
   options: number[][];
   constraints: GameCardConstraints;
+
   gameTry?: GameTry;
 
-  constructor(config: GameConfig) {
+  constructor(config: GameConfig, options?: number[][]) {
     this.config = config;
     this.constraints = new GameCardConstraints(config.options.length);
-    this.options = this.getRandomOptions();
+
+    this.options = options || this.getRandomOptions();
   }
 
   getConstraints() {
@@ -97,31 +158,24 @@ class GameCard {
     return options[Math.floor(Math.random() * options.length)];
   }
 
+  // Check if the combination is a win
+  isWinCombination(combination: string) {
+    // Combination is a win when all the options are the same
+    return combination.split("").every((option) => option == combination.at(0));
+  }
+
   markWith(option: GameTry): GameTryResult {
     if (!this.isOptionValid(option)) {
       throw new GameTryInvalid();
     }
 
-    let keyOption = null;
-    let wins: GameTryResult["win"] = false;
-
-    for (let rowIndex = 0; rowIndex < this.constraints.getRows(); rowIndex++) {
-      const columnIndexSelectedInRow = option.getColumnAsIndex(rowIndex);
-      const optionSelected = this.options[rowIndex][columnIndexSelectedInRow];
-
-      if (rowIndex === 0) {
-        keyOption = optionSelected;
-        wins = keyOption;
-      }
-
-      if (keyOption !== optionSelected) {
-        wins = false;
-        break;
-      }
-    }
+    // Set the game try for the card
+    this.gameTry = option;
+    const combination = option.getCombinationOn(this);
 
     return {
-      win: wins,
+      combination,
+      wins: this.isWinCombination(combination),
     };
   }
 }
@@ -173,37 +227,56 @@ class GameTry {
     // The selections are indexed from 1 to n like human plays
     return this.selections[rowIndex] - 1;
   }
+
+  getCombinationOn(card: GameCard) {
+    return card.options.reduce((combination, row, rowIndex) => {
+      // Get the option value
+      const option = row[this.getColumnAsIndex(rowIndex)];
+      // Append the option to the combination
+      return combination.concat(option.toString());
+    }, "");
+  }
 }
 
 type GameTryResult = {
-  win: number | false;
+  combination: string;
+  wins: boolean;
 };
 
 class GameResult {
-  wins: { [key: number]: number };
+  combinations: { [key: string]: number };
+  wins: { [key: string]: number };
   losses: number;
 
-  constructor(config: GameConfig) {
-    this.wins = this.getInitializedWins(config);
+  constructor(combinations: string[]) {
+    this.combinations = this.initializeCombinations(combinations);
+    this.wins = {};
     this.losses = 0;
   }
 
-  getInitializedWins(config: GameConfig) {
-    return config.options.reduce((wins: GameResult["wins"], option) => {
-      // Initialize wins for each option
-      wins[option] = 0;
+  initializeCombinations(combinations: string[]) {
+    return combinations.reduce((wins: GameResult["wins"], combination) => {
+      // Initialize wins for each combination
+      wins[combination] = 0;
       return wins;
     }, {});
   }
 
   count(result: GameTryResult) {
-    if (!result.win) {
+    if (!result.wins) {
       this.losses++;
-      return;
     }
 
-    // Increment wins
-    this.wins[result.win]++;
+    if (result.wins) {
+      if (!this.wins[result.combination]) {
+        this.wins[result.combination] = 0;
+      }
+
+      this.wins[result.combination]++;
+    }
+
+    // Count the combination
+    this.combinations[result.combination]++;
   }
 }
 
@@ -219,4 +292,4 @@ class GameTryInvalid extends Error {
   }
 }
 
-export { Game, GameConfig, GameTry, GameCard };
+export { Game, GameConfig, GameTry, GameCard, GameResult };

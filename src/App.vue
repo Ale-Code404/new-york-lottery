@@ -6,18 +6,32 @@
   import Button from "primevue/button";
   import Message from "primevue/message";
 
-  import Simulation from "./components/Simulation.vue";
+  import Simulation from "@/components/Simulation.vue";
+  import Analysis from "@/components/Analysis.vue";
+
   import { formatNumber } from "./utils/numbers";
+  import { Game } from "./domain/game";
 
   const MIN_TRIES = 100;
-  const MAX_TRIES = 10_000_000;
+  const MAX_TRIES = 1_000_000;
   const tries = ref(10_000);
 
   const canStartSimulation = computed(() => tries.value >= MIN_TRIES);
-  const simulationStarted = ref(false);
+
+  const simulationStatus = ref<"idle" | "running" | "finished">("idle");
+  const gameSimulated = ref<Game>();
 
   function onStartSimulation() {
-    simulationStarted.value = true;
+    simulationStatus.value = "running";
+  }
+
+  function onFinishSimulation(game: Game) {
+    gameSimulated.value = game;
+    simulationStatus.value = "finished";
+  }
+
+  function is(status: string) {
+    return simulationStatus.value === status;
   }
 </script>
 
@@ -68,6 +82,7 @@
             <Button
               label="Simular"
               :disabled="!canStartSimulation"
+              :loading="is('running')"
               @click="onStartSimulation" />
           </div>
         </Panel>
@@ -75,13 +90,20 @@
         <Panel header="Resultados de la simulación">
           <Message
             severity="secondary"
-            v-show="!canStartSimulation || !simulationStarted">
+            v-show="!canStartSimulation || is('idle')">
             ❗️ Primero debes realizar una simulación
           </Message>
 
           <Simulation
             :tries="tries"
-            v-if="canStartSimulation && simulationStarted" />
+            @onFinish="onFinishSimulation"
+            v-if="canStartSimulation && !is('idle')" />
+        </Panel>
+
+        <Panel
+          header="Analsis de resultados"
+          v-if="is('finished') && gameSimulated">
+          <Analysis :game="gameSimulated" />
         </Panel>
       </div>
     </main>

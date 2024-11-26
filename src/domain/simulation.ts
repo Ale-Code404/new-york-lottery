@@ -19,17 +19,24 @@ class Simulation {
     runner.run(() => {
       const gameTry = this.try();
 
+      this.game.play(gameTry);
+
       if (this.config.hooks?.onTry) {
         this.config.hooks.onTry(Promise.resolve(gameTry));
       }
     });
   }
 
-  /**
-   * Given a card, creates a try selecting a random option based on the weights
-   */
   try(): GameTry {
-    return new GameTry([1, 2, 1]);
+    return new GameTry([
+      this.getRandomColumn(),
+      this.getRandomColumn(),
+      this.getRandomColumn(),
+    ]);
+  }
+
+  getRandomColumn(): number {
+    return Math.floor(Math.random() * this.game.config.options.length) + 1;
   }
 }
 

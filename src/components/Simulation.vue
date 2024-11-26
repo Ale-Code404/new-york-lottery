@@ -1,15 +1,21 @@
 <script setup lang="ts">
   import { ref } from "vue";
+  import { Game } from "@/domain/game";
   import { SimulationProgress as SimulationProgressEvent } from "@/domain/simulation";
   import { createSimulation } from "@/services/simulationService";
 
   import SimulationProgress from "@/components/SimulationProgress.vue";
+  import SimulationResult from "@/components/SimulationResult.vue";
 
   interface Props {
     tries: number;
   }
 
   const props = defineProps<Props>();
+  // Communicate the simulation progress
+  const emits = defineEmits<{
+    (event: "onFinish", game: Game): void;
+  }>();
 
   const hasFinished = ref(false);
   const progress = ref<SimulationProgressEvent>({
@@ -27,6 +33,8 @@
     // Add a delay to show the animation
     setTimeout(() => {
       hasFinished.value = true;
+
+      emits("onFinish", simulation.game);
     }, 1000);
   }
 
@@ -46,6 +54,8 @@
       :max-tries="tries"
       v-show="!hasFinished" />
 
-    {{ simulation.game.result }}
+    <SimulationResult
+      :loading="!hasFinished"
+      :results="simulation.game.result" />
   </section>
 </template>
